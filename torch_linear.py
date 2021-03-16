@@ -10,13 +10,26 @@ from utils import load_dataset, concat_train_valid, print_metrics
 class Network(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer1 = nn.Linear(7800, 1)
-
-        nn.init.xavier_uniform_(self.layer1.weight)
-        nn.init.zeros_(self.layer1.bias)
+        # self.layer1 = nn.Linear(7800, 1)
+        # nn.init.xavier_uniform_(self.layer1.weight)
+        # nn.init.zeros_(self.layer1.bias)
+        self.model = nn.Sequential(
+            nn.Linear(520, 520),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(520, 260),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(260, 100),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(100, 25),
+            nn.ReLU(),
+            nn.Linear(25, 1)
+        )
 
     def forward(self, x):
-        out = torch.sigmoid(self.layer1(x))
+        out = torch.sigmoid(self.model(x))
         return out
 
 
@@ -91,7 +104,7 @@ if __name__ == '__main__':
         'cuda:0') if torch.cuda.is_available() else torch.device('cpu')
     network = Network().to(device)
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(network.parameters(), lr=10)
+    optimizer = optim.Adam(network.parameters(), lr=0.1)
 
     # Train model
     for e in range(100):
