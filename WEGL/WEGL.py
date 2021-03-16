@@ -196,75 +196,81 @@ def WEGL(dataset,
                 V[phase].append(np.matmul((N * p).T, x) - template)
             V[phase] = np.stack(V[phase])
 
-        # create the parameter grid for random forest
-        param_grid_RF = {
-            'max_depth': [None],
-            'min_samples_leaf': [1, 2, 5],
-            'min_samples_split': [2, 5, 10],
-            'n_estimators': [25, 50, 100, 150, 200]
-        }
-        
-        param_grid_all = {'RF': param_grid_RF}
+        for phase in phases:
+            np.save('data/x_' + phase + '_' + str(num_hidden_layers[0]) + '_' + str(node_embedding_sizes[0]) + '_' + final_node_embedding[0], V[phase])
 
-        # load the ROC-AUC evaluator
-        evaluator = Evaluator(name=dataset.name)
-        
-        # run the classifier
-        print('Now running the classifiers ...')
-        for classifier in classifiers:
-            if classifier not in param_grid_all:
-                print('Classifier {} not supported! Skipping ...'.format(classifier))
-                continue
+            np.save('data/y_' + phase + '_' + str(num_hidden_layers[0]) + '_' + str(node_embedding_sizes[0]) + '_' + final_node_embedding[0], Y[phase])
 
-            param_grid = param_grid_all[classifier]
 
-            # determine train and validation index split for grid search
-            test_fold = [-1] * len(V['train']) + [0] * len(V['valid'])
-            ps = PredefinedSplit(test_fold)
-
-            # concatenate train and validation datasets
-            X_grid_search = np.concatenate((V['train'], V['valid']), axis=0)
-            X_grid_search = X_grid_search.reshape(X_grid_search.shape[0], -1)
-            Y_grid_search = np.concatenate((Y['train'], Y['valid']), axis=0)
-
-            results = defaultdict(list)
-            for experiment in range(num_experiments):
-                
-                # Create a base model
-                if classifier == 'RF':
-                    model = RandomForestClassifier(
-                        n_jobs=n_jobs, class_weight='balanced',
-                        random_state=random_seed+experiment)
-                
-                # Instantiate the grid search model
-                grid_search = GridSearchCV(
-                    estimator=model, param_grid=param_grid,
-                    cv=ps, n_jobs=n_jobs, verbose=verbose, refit=False)
-
-                # Fit the grid search to the data
-                grid_search.fit(X_grid_search, Y_grid_search)
-
-                # Fit model with best parameters on the training data (again)
-                for param in grid_search.best_params_:
-                    model.param = grid_search.best_params_[param]
-                model.fit(V['train'].reshape(V['train'].shape[0], -1), Y['train'])
-                
-                # Evaluate the performance
-                for phase in phases:
-                    pred_probs = model.predict_proba(V[phase].reshape(V[phase].shape[0], -1))
-                    input_dict = {'y_true': np.array(Y[phase]).reshape(-1,1),
-                                  'y_pred': pred_probs[:, 1].reshape(-1,1)}
-                    result_dict = evaluator.eval(input_dict)
-                    results[phase].append(result_dict['rocauc'])
-
-                print('experiment {0}/{1} for {2} completed ...'.
-                      format(experiment+1, num_experiments, classifier))
-            
-            results_table.add_row(
-                [classifier, str(L), str(F)] +
-                ['{0:.2f} - {1:.2f}'.format(100 * np.mean(results[phase]),
-                                            100 * np.std(results[phase])) for phase in phases])
-                  
-    print('\n\n' + results_table.title)
-    print(results_table)
-    return results_table
+    #     # create the parameter grid for random forest
+    #     param_grid_RF = {
+    #         'max_depth': [None],
+    #         'min_samples_leaf': [1, 2, 5],
+    #         'min_samples_split': [2, 5, 10],
+    #         'n_estimators': [25, 50, 100, 150, 200]
+    #     }
+    #
+    #     param_grid_all = {'RF': param_grid_RF}
+    #
+    #     # load the ROC-AUC evaluator
+    #     evaluator = Evaluator(name=dataset.name)
+    #
+    #     # run the classifier
+    #     print('Now running the classifiers ...')
+    #     for classifier in classifiers:
+    #         if classifier not in param_grid_all:
+    #             print('Classifier {} not supported! Skipping ...'.format(classifier))
+    #             continue
+    #
+    #         param_grid = param_grid_all[classifier]
+    #
+    #         # determine train and validation index split for grid search
+    #         test_fold = [-1] * len(V['train']) + [0] * len(V['valid'])
+    #         ps = PredefinedSplit(test_fold)
+    #
+    #         # concatenate train and validation datasets
+    #         X_grid_search = np.concatenate((V['train'], V['valid']), axis=0)
+    #         X_grid_search = X_grid_search.reshape(X_grid_search.shape[0], -1)
+    #         Y_grid_search = np.concatenate((Y['train'], Y['valid']), axis=0)
+    #
+    #         results = defaultdict(list)
+    #         for experiment in range(num_experiments):
+    #
+    #             # Create a base model
+    #             if classifier == 'RF':
+    #                 model = RandomForestClassifier(
+    #                     n_jobs=n_jobs, class_weight='balanced',
+    #                     random_state=random_seed+experiment)
+    #
+    #             # Instantiate the grid search model
+    #             grid_search = GridSearchCV(
+    #                 estimator=model, param_grid=param_grid,
+    #                 cv=ps, n_jobs=n_jobs, verbose=verbose, refit=False)
+    #
+    #             # Fit the grid search to the data
+    #             grid_search.fit(X_grid_search, Y_grid_search)
+    #
+    #             # Fit model with best parameters on the training data (again)
+    #             for param in grid_search.best_params_:
+    #                 model.param = grid_search.best_params_[param]
+    #             model.fit(V['train'].reshape(V['train'].shape[0], -1), Y['train'])
+    #
+    #             # Evaluate the performance
+    #             for phase in phases:
+    #                 pred_probs = model.predict_proba(V[phase].reshape(V[phase].shape[0], -1))
+    #                 input_dict = {'y_true': np.array(Y[phase]).reshape(-1,1),
+    #                               'y_pred': pred_probs[:, 1].reshape(-1,1)}
+    #                 result_dict = evaluator.eval(input_dict)
+    #                 results[phase].append(result_dict['rocauc'])
+    #
+    #             print('experiment {0}/{1} for {2} completed ...'.
+    #                   format(experiment+1, num_experiments, classifier))
+    #
+    #         results_table.add_row(
+    #             [classifier, str(L), str(F)] +
+    #             ['{0:.2f} - {1:.2f}'.format(100 * np.mean(results[phase]),
+    #                                         100 * np.std(results[phase])) for phase in phases])
+    #
+    # print('\n\n' + results_table.title)
+    # print(results_table)
+    # return results_table
