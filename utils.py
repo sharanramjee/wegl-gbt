@@ -21,8 +21,7 @@ def concat_train_valid(V, Y):
     return x_train, y_train
 
 
-def evaluate_model(model, x_test, y_test):
-    preds = model.predict(x_test)
+def print_metrics(preds, y_test):
     acc = metrics.accuracy_score(y_test, preds)
     roc_auc = metrics.roc_auc_score(y_test, preds)
     prec = metrics.precision_score(y_test, preds)

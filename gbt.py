@@ -1,11 +1,16 @@
 from xgboost import XGBClassifier
-from utils import load_dataset, concat_train_valid, evaluate_model
+from utils import load_dataset, concat_train_valid, print_metrics
 
 
 def xgboost_gbt(x_train, y_train):
     model = XGBClassifier()
     model.fit(x_train, y_train)
     return model
+
+
+def make_preds(model, x_test):
+    preds = model.predict(x_test)
+    return preds
 
 
 if __name__ == '__main__':
@@ -20,4 +25,5 @@ if __name__ == '__main__':
 
     # XGBoost GBT
     model = xgboost_gbt(X_train, Y_train)
-    evaluate_model(model, X_test, Y_test)
+    preds = make_preds(model, X_test)
+    print_metrics(preds, Y_test)
