@@ -2,6 +2,7 @@ import torch
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops
 
+
 class Diffusion_layer(MessagePassing):
     """
     Generalized diffusion layer to incorporate multiple non-negative edge features
@@ -44,4 +45,3 @@ class Diffusion_layer(MessagePassing):
     
     def update(self, aggr_out):
         return aggr_out
-    

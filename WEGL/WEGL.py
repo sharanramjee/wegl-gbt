@@ -20,6 +20,7 @@ import ot
 from .onehot_bondencoder import BondEncoderOneHot
 from .diffusion import Diffusion
 
+
 def WEGL(dataset,
          num_hidden_layers,
          node_embedding_sizes,
@@ -37,12 +38,16 @@ def WEGL(dataset,
     Inputs:
         - dataset: dataset object
         - num_hidden_layers: number of diffusion layers
-        - node_embedding_sizes: node embedding dimensionality created by the AtomEncoder module
-        - final_node_embedding: final node embedding type $\in$ {'concat', 'avg', 'final'}
-        - num_pca_components: number of PCA components applied on node embeddings. -1 means no PCA.
+        - node_embedding_sizes: node embedding dimensionality created by the
+                                AtomEncoder module
+        - final_node_embedding: final node embedding type $in$
+                                {'concat', 'avg', 'final'}
+        - num_pca_components: number of PCA components applied on node
+                              embeddings. -1 means no PCA.
         - num_experiments: number of experiments with different random seeds
-        - classifiers: list of downstream classifiers
-        (currently random forest ('RF') only; other classifiers, e.g., SVM, can be added if desired
+        - classifiers: list of downstream classifiers (currently random forest
+                       ('RF') only; other classifiers, e.g., SVM, can be added
+                       if desired
         - random_seed: the random seed
         - device # the device to run the diffusion over ('cpu'/'cuda')
         
@@ -56,38 +61,45 @@ def WEGL(dataset,
     np.random.seed(random_seed)
     
     # Create data loaders
-    split_idx = dataset.get_idx_split() # train/val/test split
+    # train/val/test split
+    split_idx = dataset.get_idx_split()
     loader_dict = {}
     for phase in split_idx:
         batch_size = 32
-        loader_dict[phase] = DataLoader(dataset[split_idx[phase]], batch_size=batch_size, shuffle=False)
+        loader_dict[phase] = DataLoader(
+            dataset[split_idx[phase]], batch_size=batch_size, shuffle=False)
     
     # prepare the output table
     results_table = PrettyTable()
-    results_table.title = 'Final ROC-AUC(%) results for the {0} dataset with \'{1}\' node embedding and one-hot 13-dim edge embedding'.\
-                               format(dataset.name, final_node_embedding)
+    results_table.title = 'Final ROC-AUC(%) results for the {0} dataset ' \
+                          'with \'{1}\' node embedding and one-hot 13-dim ' \
+                          'edge embedding'.format(dataset.name,
+                                                  final_node_embedding)
 
-    results_table.field_names = ['Classifier', '# Diffusion Layers', 'Node Embedding Size',
-                                 'Train.', 'Val.', 'Test']
+    results_table.field_names = ['Classifier', '# Diffusion Layers',
+                                 'Node Embedding Size', 'Train.', 'Val.',
+                                 'Test']
 
     n_jobs = 14
     verbose = 0
     
     for L, F in itertools.product(num_hidden_layers, node_embedding_sizes):
         print('*' * 100)
-        print('# diffusion layers = {0}, node embedding size = {1}, node embedding mode: {2}\n'.\
-              format(L, F, final_node_embedding))
+        print('# diffusion layers = {0}, node embedding size = {1},'
+              'node embedding mode: {2}\n'.format(L, F, final_node_embedding))
         
         # create an instance of the diffusion object
-        diffusion = Diffusion(num_hidden_layers=L,
-                              final_node_embedding=final_node_embedding).to(device)
+        diffusion = Diffusion(
+            num_hidden_layers=L,
+            final_node_embedding=final_node_embedding).to(device)
         diffusion.eval()
         
         # create the node encoder
         node_feature_encoder = AtomEncoder(F).to(device)
         node_feature_encoder.eval()
 
-        phases = list(loader_dict.keys()) # determine different partitions of data ('train', 'valid' and 'test')
+        # determine different partitions of data ('train', 'valid' and 'test')
+        phases = list(loader_dict.keys())
 
         # pass the all the graphs in the data through the GNN
         X = defaultdict(list)
@@ -112,23 +124,20 @@ def WEGL(dataset,
                 # make the initial features of all virtual nodes zero
                 batch.x = torch.cat((batch.x, batch.x.new_zeros(batch_size, batch.x.size(1))), dim=0)
                 
-                # add edges between all nodes in each graph and the virtual node for that graph
+                # add edges between all nodes in each graph
+                # and the virtual node for that graph
                 for g in range(batch_size):
-                    node_indices = np.where(batch.batch == g)[0][:-1] # last node is the virtual node
+                    # last node is the virtual node
+                    node_indices = np.where(batch.batch == g)[0][:-1]
                     virtual_edges_one_way = np.array([node_indices, (num_original_nodes + g) * np.ones_like(node_indices)])
-                    virtual_edges_two_ways = np.concatenate((virtual_edges_one_way,
-                                                             np.take(virtual_edges_one_way, [1,0], axis=0)),
-                                                            axis=1)
+                    virtual_edges_two_ways = np.concatenate((virtual_edges_one_way, np.take(virtual_edges_one_way, [1, 0], axis=0)), axis=1)
                     
-                    batch.edge_index = torch.cat((batch.edge_index,
-                                                  torch.Tensor(virtual_edges_two_ways).to(batch.edge_index.dtype)),
-                                                 dim=1)
+                    batch.edge_index = torch.cat((batch.edge_index, torch.Tensor(virtual_edges_two_ways).to(batch.edge_index.dtype)), dim=1)
                     
-                    # make the initial edge features of all edges to/from virtual nodes all 1 / number of graph nodes
-                    batch.edge_attr = torch.cat((batch.edge_attr, 
-                                                 batch.edge_attr.new_ones(2 * len(node_indices),
-                                                                          batch.edge_attr.size(1)) / len(node_indices)),
-                                                dim=0)
+                    # make the initial edge features of all edges to/from
+                    # virtual nodes all 1 / number of graph nodes
+                    batch.edge_attr = torch.cat((batch.edge_attr, batch.edge_attr.new_ones(
+                        2 * len(node_indices), batch.edge_attr.size(1)) / len(node_indices)), dim=0)
 
                 # pass the data through the diffusion process
                 z = diffusion(batch)
@@ -182,7 +191,8 @@ def WEGL(dataset,
                 C = ot.dist(x, template)
                 b = np.ones((N,)) / float(N)
                 a = np.ones((M,)) / float(M)
-                p = ot.emd(a,b,C) # exact linear program
+                # exact linear program
+                p = ot.emd(a, b, C)
                 V[phase].append(np.matmul((N * p).T, x) - template)
             V[phase] = np.stack(V[phase])
 
@@ -222,17 +232,19 @@ def WEGL(dataset,
                 
                 # Create a base model
                 if classifier == 'RF':
-                    model = RandomForestClassifier(n_jobs=n_jobs, class_weight='balanced',
-                                                   random_state=random_seed+experiment)
+                    model = RandomForestClassifier(
+                        n_jobs=n_jobs, class_weight='balanced',
+                        random_state=random_seed+experiment)
                 
                 # Instantiate the grid search model
-                grid_search = GridSearchCV(estimator=model, param_grid=param_grid, 
-                                          cv=ps, n_jobs=n_jobs, verbose=verbose, refit=False)
+                grid_search = GridSearchCV(
+                    estimator=model, param_grid=param_grid,
+                    cv=ps, n_jobs=n_jobs, verbose=verbose, refit=False)
 
                 # Fit the grid search to the data
                 grid_search.fit(X_grid_search, Y_grid_search)
 
-                # Fit the model with best parameters on the training data (again)
+                # Fit model with best parameters on the training data (again)
                 for param in grid_search.best_params_:
                     model.param = grid_search.best_params_[param]
                 model.fit(V['train'].reshape(V['train'].shape[0], -1), Y['train'])
@@ -245,12 +257,13 @@ def WEGL(dataset,
                     result_dict = evaluator.eval(input_dict)
                     results[phase].append(result_dict['rocauc'])
 
-                print('experiment {0}/{1} for {2} completed ...'.format\
-                      (experiment+1, num_experiments, classifier))
+                print('experiment {0}/{1} for {2} completed ...'.
+                      format(experiment+1, num_experiments, classifier))
             
-            results_table.add_row([classifier, str(L), str(F)] + ['{0:.2f} $\pm$ {1:.2f}'.\
-                                      format(100 * np.mean(results[phase]), \
-                                             100 * np.std(results[phase])) for phase in phases])
+            results_table.add_row(
+                [classifier, str(L), str(F)] +
+                ['{0:.2f} - {1:.2f}'.format(100 * np.mean(results[phase]),
+                                            100 * np.std(results[phase])) for phase in phases])
                   
     print('\n\n' + results_table.title)
     print(results_table)

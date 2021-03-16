@@ -1,16 +1,19 @@
 import torch
 from .diffusion_layer_multiple_nonneg_edge_features import Diffusion_layer
 
+
 class Diffusion(torch.nn.Module):
     """
-    The diffusion class, which is a forward pass of the node and edge features through the diffusion process
+    The diffusion class, which is a forward pass of the node and edge features
+    through the diffusion process
     """
     
     def __init__(self, num_hidden_layers, final_node_embedding='final'):
         super(Diffusion, self).__init__()
             
         # create the hidden layers
-        self.layers = torch.nn.ModuleList([Diffusion_layer() for _ in range(num_hidden_layers)])
+        self.layers = torch.nn.ModuleList(
+            [Diffusion_layer() for _ in range(num_hidden_layers)])
         
         self.final_node_embedding = final_node_embedding
             
