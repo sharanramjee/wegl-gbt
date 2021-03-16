@@ -197,9 +197,8 @@ def WEGL(dataset,
             V[phase] = np.stack(V[phase])
 
         for phase in phases:
-            np.save('data/x_' + phase + '_' + str(num_hidden_layers[0]) + '_' + str(node_embedding_sizes[0]) + '_' + final_node_embedding[0], V[phase])
-
-            np.save('data/y_' + phase + '_' + str(num_hidden_layers[0]) + '_' + str(node_embedding_sizes[0]) + '_' + final_node_embedding[0], Y[phase])
+            np.save('data/x_' + phase + '_' + str(num_hidden_layers[0]) + '_' + str(node_embedding_sizes[0]) + '_' + final_node_embedding, V[phase])
+            np.save('data/y_' + phase + '_' + str(num_hidden_layers[0]) + '_' + str(node_embedding_sizes[0]) + '_' + final_node_embedding, Y[phase])
 
 
     #     # create the parameter grid for random forest
