@@ -4,7 +4,7 @@ from torch import nn
 from torch import optim
 from sklearn import metrics
 from torch.utils.data import Dataset, DataLoader
-from utils import load_dataset, concat_train_valid, print_metrics
+from utils import *
 
 
 class Network(nn.Module):
@@ -93,6 +93,8 @@ if __name__ == '__main__':
     X_train, Y_train = concat_train_valid(V, Y)
     X_test = V['test']
     Y_test = Y['test']
+    X_train, Y_train = oversample_train_set(X_train, Y_train)
+    Y_train = Y_train.reshape((-1, 1))
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
     train_set = TrainDataset(X_train, Y_train)
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
@@ -104,7 +106,7 @@ if __name__ == '__main__':
         'cuda:0') if torch.cuda.is_available() else torch.device('cpu')
     network = Network().to(device)
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(network.parameters(), lr=0.1)
+    optimizer = optim.Adam(network.parameters(), lr=1)
 
     # Train model
     for e in range(100):
