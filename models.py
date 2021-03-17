@@ -1,23 +1,12 @@
 import pickle
 from utils import *
 from xgboost import XGBClassifier
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
-from imblearn.ensemble import BalancedRandomForestClassifier
+import imblearn.ensemble as imb_ensemble
+import sklearn.ensemble as sk_emsemble
 
 
-def balanced_rf(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
-    model = BalancedRandomForestClassifier(
-            n_estimators=n_estimators,
-            min_samples_split=min_samples_split,
-            min_samples_leaf=min_samples_leaf,
-            n_jobs=16,
-            )
-    model.fit(x_train, y_train)
-    return model
-
-
-def rf_model(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
-    model = RandomForestClassifier(
+def sklearn_rf(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
+    model = sk_ensemble.RandomForestClassifier(
             n_estimators=n_estimators,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
@@ -28,8 +17,8 @@ def rf_model(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf
     return model
 
 
-def sklearn_gbt(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
-    model = GradientBoostingClassifier(
+def balanced_rf(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
+    model = imb_ensemble.BalancedRandomForestClassifier(
             n_estimators=n_estimators,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
@@ -39,10 +28,11 @@ def sklearn_gbt(x_train, y_train, n_estimators, min_samples_split, min_samples_l
     return model
 
 
-def bagging_model(x_train, y_train, n_estimators):
-    model = BaggingClassifier(
+def sklearn_gbt(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
+    model = sk_ensemble.GradientBoostingClassifier(
             n_estimators=n_estimators,
-            n_jobs=16,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
             )
     model.fit(x_train, y_train)
     return model
@@ -52,6 +42,24 @@ def xgboost_gbt(x_train, y_train, n_estimators, booster):
     model = XGBClassifier(
             n_estimators=n_estimators,
             booster=booster,
+            n_jobs=16,
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
+def sklearn_bagging(x_train, y_train, n_estimators):
+    model = sk_ensemble.BaggingClassifier(
+            n_estimators=n_estimators,
+            n_jobs=16,
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
+def balanced_bagging(x_train, y_train, n_estimators):
+    model = imb_emsemble.BalancedBaggingClassifier(
+            n_estimators=n_estimators,
             n_jobs=16,
             )
     model.fit(x_train, y_train)
@@ -74,12 +82,13 @@ if __name__ == '__main__':
     X_train, Y_train = apply_smote(X_train, Y_train)
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
 
+    #model = sklearn_rf(X_train, Y_train, 25, 2, 2)      # RF
+    #model = balanced_rf(X_train, Y_train, 25, 2, 2)     # Balanced RF (doesn't work)
+    #model = sklearn_gbt(X_train, Y_train, 30, 2, 2)     # XGBoost GBT (doesn't work)
     #model = xgboost_gbt(X_train, Y_train, 30, 'dart')   # XGBoost GBT
-    model = bagging_model(X_train, Y_train, 25)         # Bagging Model
-    print_results(model, V, Y)
-    #model = balanced_rf(X_train, Y_train, 25, 2, 2)     # Balanced RF
-    #print_results(model, V, Y)
-    #model = rf_model(X_train, Y_train, 25, 2, 2)         # RF
+    #model = sklearn_bagging(X_train, Y_train, 25)       # Bagging Model
+    #model = balanced_bagging(X_train, Y_train, 25)      # Balanced Bagging (doesn't work)
+    model = 
     #preds = make_preds(model, X_test)
     #print_metrics(preds, Y_test)
-    #print_results(model, V, Y)
+    print_results(model, V, Y)
