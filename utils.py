@@ -1,5 +1,12 @@
 import numpy as np
+from imblearn.over_sampling import SMOTE
 from sklearn import metrics
+
+
+def oversample_train_set(x_train, y_train):
+    sm = SMOTE(sampling_strategy='minority')
+    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
+    return x_train_res, y_train_res
 
 
 def load_dataset(dir_name, node_embedding):
@@ -7,8 +14,8 @@ def load_dataset(dir_name, node_embedding):
     Y = dict()
     phases = ['train', 'valid', 'test']
     for phase in phases:
-        v_fname = dir_name + '/x_' + phase + '_4_300_' + node_embedding + '.npy'
-        y_fname = dir_name + '/y_' + phase + '_4_300_' + node_embedding + '.npy'
+        v_fname = dir_name + '/x_' + phase + '_4_300_' + node_embedding + '_pca.npy'
+        y_fname = dir_name + '/y_' + phase + '_4_300_' + node_embedding + '_pca.npy'
         V[phase] = np.load(v_fname)
         V[phase] = V[phase].reshape(V[phase].shape[0], -1)
         Y[phase] = np.load(y_fname).reshape(-1, 1)
