@@ -1,3 +1,4 @@
+import pickle
 from utils import *
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
@@ -22,6 +23,17 @@ def rf_model(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf
             min_samples_leaf=min_samples_leaf,
             n_jobs=16,
             class_weight='balanced',
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
+def sklearn_gbt(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
+    model = GradientBoostingClassifier(
+            n_estimators=n_estimators,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            n_jobs=16,
             )
     model.fit(x_train, y_train)
     return model
@@ -62,9 +74,12 @@ if __name__ == '__main__':
     X_train, Y_train = apply_smote(X_train, Y_train)
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
 
-    #model = xgboost_gbt(X_train, Y_train, 25, 'dart')   # XGBoost GBT
-    #model = bagging_model(X_train, Y_train, 25)         # Bagging Model
+    #model = xgboost_gbt(X_train, Y_train, 30, 'dart')   # XGBoost GBT
+    model = bagging_model(X_train, Y_train, 25)         # Bagging Model
+    print_results(model, V, Y)
     #model = balanced_rf(X_train, Y_train, 25, 2, 2)     # Balanced RF
-    model = rf_model(X_train, Y_train, 100, 2, 2)         # RF
-    preds = make_preds(model, X_test)
-    print_metrics(preds, Y_test)
+    #print_results(model, V, Y)
+    #model = rf_model(X_train, Y_train, 25, 2, 2)         # RF
+    #preds = make_preds(model, X_test)
+    #print_metrics(preds, Y_test)
+    #print_results(model, V, Y)
