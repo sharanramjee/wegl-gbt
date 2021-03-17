@@ -14,6 +14,15 @@ def balanced_rf(x_train, y_train, n_estimators, min_samples_split, min_samples_l
     return model
 
 
+def bagging_model(x_train, y_train, n_estimators):
+    model = BaggingClassifier(
+            n_estimators=n_estimators,
+            n_jobs=16,
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
 def xgboost_gbt(x_train, y_train, n_estimators, booster):
     model = XGBClassifier(
             n_estimators=n_estimators,
@@ -40,7 +49,8 @@ if __name__ == '__main__':
     X_train, Y_train = apply_smote(X_train, Y_train)
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
 
-    model = xgboost_gbt(X_train, Y_train, 25, 'dart')   # XGBoost GBT
-    #model = balanced_rf(X_train, Y_train, 25, 2, 2)
+    #model = xgboost_gbt(X_train, Y_train, 25, 'dart')   # XGBoost GBT
+    #model = bagging_model(X_train, Y_train, 25)         # Bagging Model
+    model = balanced_rf(X_train, Y_train, 25, 2, 2)      # Balanced RF
     preds = make_preds(model, X_test)
     print_metrics(preds, Y_test)
