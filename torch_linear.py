@@ -10,13 +10,42 @@ from utils import load_dataset, concat_train_valid, print_metrics
 class Network(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer1 = nn.Linear(7800, 1)
+        self.model = nn.Sequential(
+                nn.Linear(7800, 7800),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.Linear(7800, 3900),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.Linear(3900, 1950),
+                nn.ReLU(),
+                nn.Dropout(),
+                #nn.Linear(1950, 975),
+                #nn.ReLU(),
+                nn.Linear(1950, 400),
+                nn.ReLU(),
+                nn.Dropout(),
+                #nn.Linear(400, 200),
+                #nn.ReLU(),
+                nn.Linear(400, 100),
+                nn.ReLU(),
+                nn.Dropout(),
+                #nn.Linear(100, 50),
+                #nn.ReLU(),
+                nn.Linear(100, 25),
+                nn.ReLU(),
+                nn.Linear(25, 1)
+                )
+        #self.layer1 = nn.Linear(7800, 1)
+        #self.layer1 = nn.Linear(7800, 1)
+        #self.layer1 = nn.Linear(7800, 1)
+        #self.layer1 = nn.Linear(7800, 1)
 
-        nn.init.xavier_uniform_(self.layer1.weight)
-        nn.init.zeros_(self.layer1.bias)
+        #nn.init.xavier_uniform_(self.layer1.weight)
+        #nn.init.zeros_(self.layer1.bias)
 
     def forward(self, x):
-        out = torch.sigmoid(self.layer1(x))
+        out = torch.sigmoid(self.model(x))
         return out
 
 
@@ -91,10 +120,10 @@ if __name__ == '__main__':
         'cuda:0') if torch.cuda.is_available() else torch.device('cpu')
     network = Network().to(device)
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(network.parameters(), lr=10)
+    optimizer = optim.Adam(network.parameters(), lr=0.1)
 
     # Train model
-    for e in range(100):
+    for e in range(25):
         epoch_loss = 0
         epoch_acc = 0
         # epoch_roc_auc = 0
