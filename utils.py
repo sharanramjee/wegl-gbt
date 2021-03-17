@@ -1,10 +1,34 @@
 import numpy as np
-from imblearn.over_sampling import SMOTE
 from sklearn import metrics
+from imblearn.over_sampling import *
 
 
-def oversample_train_set(x_train, y_train):
+def apply_adasyn(x_train, y_train):
+    sm = ADASYN(sampling_strategy='minority')
+    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
+    return x_train_res, y_train_res
+
+
+def apply_smote(x_train, y_train):
     sm = SMOTE(sampling_strategy='minority')
+    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
+    return x_train_res, y_train_res
+
+
+def apply_b_smote(x_train, y_train):
+    sm = BorderlineSMOTE(sampling_strategy='minority')
+    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
+    return x_train_res, y_train_res
+
+
+def apply_km_smote(x_train, y_train):
+    sm = KMeansSMOTE(sampling_strategy='minority')
+    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
+    return x_train_res, y_train_res
+
+
+def apply_svm_smote(x_train, y_train):
+    sm = KMeansSMOTE(sampling_strategy='minority')
     x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
     return x_train_res, y_train_res
 
