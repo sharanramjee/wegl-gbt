@@ -130,4 +130,3 @@ if __name__ == '__main__':
     # Test model
     model_preds = make_preds(network, test_loader)
     print_metrics(model_preds, Y_test)
->>>>>>> 6e909d88a61d179ee8624c4b86888f28ae326ac0
