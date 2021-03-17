@@ -1,15 +1,14 @@
-from xgboost import XGBClassifier
 from utils import *
 from sklearn import metrics
+from sklearn.ensemble import BaggingClassifier
 
 
-def xgboost_gbt(x_train, y_train):
-    model = XGBClassifier(
-            n_estimators=10,
-            booster='dart',
+def bagging_model(x_train, y_train):
+    model = BaggingClassifier(
+            n_estimators=25,
             n_jobs=16,
             )
-    model.fit(x_train, y_train, verbose=True)
+    model.fit(x_train, y_train)
     return model
 
 
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
 
     # XGBoost GBT
-    model = xgboost_gbt(X_train, Y_train)
+    model = bagging_model(X_train, Y_train)
     preds = make_preds(model, X_test)
     print_metrics(preds, Y_test)
     print(metrics.confusion_matrix(Y_test, preds).ravel())

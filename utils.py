@@ -58,11 +58,13 @@ def print_metrics(preds, y_test):
     prec = metrics.precision_score(y_test, preds)
     rec = metrics.recall_score(y_test, preds)
     f1 = metrics.f1_score(y_test, preds)
+    conf_mat = metrics.confusion_matrix(y_test, preds)
     print('Accuracy:', acc)
-    print('ROC AUC:', roc_auc)
+    print('ROC-AUC:', roc_auc)
     print('Precision:', prec)
     print('Recall:', rec)
     print('F-1 Score:', f1)
+    print('Confusion Matrix:', conf_mat)
 
 
 if __name__ == '__main__':
