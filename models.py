@@ -2,7 +2,13 @@ import pickle
 from utils import *
 from xgboost import XGBClassifier
 import imblearn.ensemble as imb_ensemble
-import sklearn.ensemble as sk_emsemble
+from sklearn.experimental import enable_hist_gradient_boosting
+import sklearn.ensemble as sk_ensemble
+
+
+def make_preds(model, x_test):
+    preds = model.predict(x_test)
+    return preds
 
 
 def sklearn_rf(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
@@ -66,9 +72,40 @@ def balanced_bagging(x_train, y_train, n_estimators):
     return model
 
 
-def make_preds(model, x_test):
-    preds = model.predict(x_test)
-    return preds
+def easy_ensemble(x_train, y_train, n_estimators, sampling_strategy):
+    model = imb_ensemble.BalancedBaggingClassifier(
+            n_estimators=n_estimators,
+            sampling_strategy=sampling_strategy,
+            n_jobs=4,
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
+def ada_boost(x_train, y_train, n_estimators):
+    model = sk_ensemble.AdaBoostClassifier(
+            n_estimators=n_estimators,
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
+def isolation_forest(x_train, y_train, n_estimators):
+    model = sk_ensemble.IsolationForest(
+            n_estimators=n_estimators,
+            n_jobs=16,
+            )
+    model.fit(x_train, y_train)
+    return model
+
+
+def hog(x_train, y_train):
+    model = sk_ensemble.HistGradientBoostingClassifier(
+            l2_regularization=200,
+            )
+    model.fit(x_train, y_train)
+    return model
+
 
 
 if __name__ == '__main__':
@@ -82,13 +119,15 @@ if __name__ == '__main__':
     X_train, Y_train = apply_smote(X_train, Y_train)
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
 
-    #model = sklearn_rf(X_train, Y_train, 25, 2, 2)      # RF
-    #model = balanced_rf(X_train, Y_train, 25, 2, 2)     # Balanced RF (doesn't work)
-    #model = sklearn_gbt(X_train, Y_train, 30, 2, 2)     # XGBoost GBT (doesn't work)
-    #model = xgboost_gbt(X_train, Y_train, 30, 'dart')   # XGBoost GBT
-    #model = sklearn_bagging(X_train, Y_train, 25)       # Bagging Model
-    #model = balanced_bagging(X_train, Y_train, 25)      # Balanced Bagging (doesn't work)
-    model = 
+    #model = sklearn_rf(X_train, Y_train, 25, 2, 2)        # RF
+    #model = balanced_rf(X_train, Y_train, 25, 2, 2)       # Balanced RF (doesn't work)
+    #model = sklearn_gbt(X_train, Y_train, 30, 2, 2)       # GBT model (doesn't work)
+    #model = xgboost_gbt(X_train, Y_train, 30, 'dart')     # XGBoost GBT
+    #model = sklearn_bagging(X_train, Y_train, 25)         # Bagging Model
+    #model = balanced_bagging(X_train, Y_train, 25)        # Balanced Bagging (doesn't work)
+    #model = easy_ensemble(X_train, Y_train, 25, 'auto')   # Easy Ensemble (doesn't work)
+    #model = ada_boost(X_train, Y_train, 25)               # AdaBoost (doesn't work)
+    model = hog(X_train, Y_train)                         # HOG
     #preds = make_preds(model, X_test)
     #print_metrics(preds, Y_test)
     print_results(model, V, Y)
