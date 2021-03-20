@@ -1,5 +1,5 @@
-import pickle
 from utils import *
+from balancing import *
 from xgboost import XGBClassifier
 import imblearn.ensemble as imb_ensemble
 from sklearn.experimental import enable_hist_gradient_boosting
@@ -14,6 +14,7 @@ def make_preds(model, x_test):
 def sklearn_rf(x_train, y_train, n_estimators, min_samples_split, min_samples_leaf):
     model = sk_ensemble.RandomForestClassifier(
             n_estimators=n_estimators,
+            #max_depth=5,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             n_jobs=16,
@@ -99,7 +100,7 @@ def isolation_forest(x_train, y_train, n_estimators):
     return model
 
 
-def hog(x_train, y_train):
+def hgbt(x_train, y_train):
     model = sk_ensemble.HistGradientBoostingClassifier(
             l2_regularization=200,
             )
@@ -114,6 +115,8 @@ if __name__ == '__main__':
     final_node_embedding = 'final'
     V, Y = load_dataset(data_dir, final_node_embedding)
     X_train, Y_train = concat_train_valid(V, Y)
+    #X_train = V['train']
+    #Y_train = Y['train']
     X_test = V['test']
     Y_test = Y['test']
     X_train, Y_train = apply_smote(X_train, Y_train)
@@ -127,7 +130,11 @@ if __name__ == '__main__':
     #model = balanced_bagging(X_train, Y_train, 25)        # Balanced Bagging (doesn't work)
     #model = easy_ensemble(X_train, Y_train, 25, 'auto')   # Easy Ensemble (doesn't work)
     #model = ada_boost(X_train, Y_train, 25)               # AdaBoost (doesn't work)
-    model = hog(X_train, Y_train)                         # HOG
-    #preds = make_preds(model, X_test)
-    #print_metrics(preds, Y_test)
-    print_results(model, V, Y)
+    #model = hgbt(X_train, Y_train)                        # HGBT
+    for i in range(10):
+        print('Experiment:', i)
+        model = hgbt(X_train, Y_train)
+        #preds = make_preds(model, X_test)
+        #print_metrics(preds, Y_test)
+        #print_conf(preds, Y_test)
+        print_results(model, V, Y)

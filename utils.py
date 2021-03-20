@@ -1,47 +1,12 @@
+import pickle
 import numpy as np
 from sklearn import metrics
-from imblearn.over_sampling import *
 from prettytable import PrettyTable
 from collections import defaultdict
+
 import ogb
 from ogb.graphproppred import Evaluator
 from ogb.graphproppred import PygGraphPropPredDataset
-
-
-def apply_adasyn(x_train, y_train):
-    sm = ADASYN(sampling_strategy='minority')
-    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
-    return x_train_res, y_train_res
-
-
-def apply_smote(x_train, y_train):
-    sm = SMOTE(sampling_strategy='minority', k_neighbors=5)
-    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
-    return x_train_res, y_train_res
-
-
-def apply_b_smote(x_train, y_train):
-    sm = BorderlineSMOTE(sampling_strategy='minority')
-    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
-    return x_train_res, y_train_res
-
-
-def apply_km_smote(x_train, y_train):
-    sm = KMeansSMOTE(sampling_strategy='minority')
-    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
-    return x_train_res, y_train_res
-
-
-def apply_svm_smote(x_train, y_train):
-    sm = SVMSMOTE(sampling_strategy='minority')
-    x_train_res, y_train_res = sm.fit_resample(x_train, y_train)
-    return x_train_res, y_train_res
-
-
-def load_saved_model(file_path='checkpoints/rf_25.pkl'):
-    with open(file_path, 'rb') as fid:
-        model = pickle.load(fid) 
-    return model
 
 
 def load_dataset(dir_name, node_embedding):
@@ -63,19 +28,39 @@ def concat_train_valid(V, Y):
     return x_train, y_train
 
 
+def print_conf(preds, y_test):
+    tp = list()
+    fp = list()
+    tn = list()
+    fn = list()
+    for i in range(len(preds)):
+        if preds[i] == y_test[i] == 1:
+            tp.append(i)
+        if preds[i] == 1 and y_test[i] == 0:
+            fp.append(i)
+        if preds[i] == y_test[i] == 0:
+            tn.append(i)
+        if preds[i] == 0 and y_test[i] == 1:
+            fn.append(i)
+    print('Num TP:', len(tp), 'Examples:', tp[:10])
+    print('Num FP:', len(fp), 'Examples:', fp[:10])
+    print('Num TN:', len(tn), 'Examples:', tn[:10])
+    print('Num FN:', len(fn), 'Examples:', fn[:10])     
+
+
 def print_metrics(preds, y_test):
     acc = metrics.accuracy_score(y_test, preds)
     roc_auc = metrics.roc_auc_score(y_test, preds)
-    #prec = metrics.precision_score(y_test, preds)
-    #rec = metrics.recall_score(y_test, preds)
-    #f1 = metrics.f1_score(y_test, preds)
-    #conf_mat = metrics.confusion_matrix(y_test, preds)
+    prec = metrics.precision_score(y_test, preds)
+    rec = metrics.recall_score(y_test, preds)
+    f1 = metrics.f1_score(y_test, preds)
+    conf_mat = metrics.confusion_matrix(y_test, preds)
     print('Accuracy:', acc)
     print('ROC-AUC:', roc_auc)
-    #print('Precision:', prec)
-    #print('Recall:', rec)
-    #print('F-1 Score:', f1)
-    #print('Confusion Matrix:', conf_mat)
+    print('Precision:', prec)
+    print('Recall:', rec)
+    print('F-1 Score:', f1)
+    print('Confusion Matrix:', conf_mat)
 
 
 def print_results(model, V, Y):

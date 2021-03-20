@@ -93,7 +93,7 @@ if __name__ == '__main__':
     X_train, Y_train = concat_train_valid(V, Y)
     X_test = V['test']
     Y_test = Y['test']
-    X_train, Y_train = oversample_train_set(X_train, Y_train)
+    X_train, Y_train = apply_smote(X_train, Y_train)
     Y_train = Y_train.reshape((-1, 1))
     print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
     train_set = TrainDataset(X_train, Y_train)
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(network.parameters(), lr=1)
 
     # Train model
-    for e in range(100):
+    for e in range(5):
         epoch_loss = 0
         epoch_acc = 0
         # epoch_roc_auc = 0
@@ -132,3 +132,4 @@ if __name__ == '__main__':
     # Test model
     model_preds = make_preds(network, test_loader)
     print_metrics(model_preds, Y_test)
+
